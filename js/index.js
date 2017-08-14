@@ -7,26 +7,26 @@ const form = document.querySelector(".search-form");
 const input = document.querySelector("#search");
 const toggleButton = document.querySelector(".viewType");
 
-function createFilmCard(title, imageUrl, description, id, video){
+function createFilmCard(filmItem){
     let filmCard = document.createElement("div");
-    filmCard.dataset.id = id;
+    filmCard.dataset.id = filmItem.id;
     filmCard.classList.add("film-card");
 
     let filmTitle = document.createElement("div");
     filmTitle.classList.add("title");
-    filmTitle.innerHTML = title;
+    filmTitle.innerHTML = filmItem.title;
 
     let filmImage = document.createElement("img");
     filmImage.classList.add("poster");
-    filmImage.src = imageUrl;
-    filmImage.alt = title;
+    filmImage.src = `https://image.tmdb.org/t/p/w500${filmItem.poster_path}`;
+    filmImage.alt = filmItem.title;
     filmImage.onerror = function () {
         filmImage.src = "http://via.placeholder.com/300x300"
     };
 
     let filmDescription = document.createElement("div");
     filmDescription.classList.add("description");
-    filmDescription.innerHTML = description;
+    filmDescription.innerHTML = filmItem.overview;
 
     let filmButton =document.createElement("button");
     filmButton.classList.add("film-card-button");
@@ -40,7 +40,7 @@ function createFilmCard(title, imageUrl, description, id, video){
     filmCard.appendChild(filmDescription);
     filmCard.appendChild(filmButton);
 
-    if (video){
+    if (filmItem.video){
         let videoIcon = document.createElement("img");
         videoIcon.classList.add("video-icon");
         videoIcon.src = "data:image/png;base64,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";
@@ -54,11 +54,6 @@ function createFilmCard(title, imageUrl, description, id, video){
 
     return filmCard;
 }
-
-function addFilmCard(title, imageUrl, description, id, video){
-    container.appendChild(createFilmCard(title, imageUrl, description,id, video))
-}
-
 
 form.addEventListener("submit", function (e) {
     e.preventDefault();
@@ -76,6 +71,7 @@ function search(query) {
             return response.json()
         })
         .then(function(json) {
+            data = [];
             if (json.total_pages > 1){
                 for (let i = json.page; i<= json.total_pages; i++){
                     getData(query, i)
@@ -84,12 +80,12 @@ function search(query) {
                         })
                         .then(function (json) {
                             json.results.forEach(function (filmItem) {
-                                addFilmCard(filmItem.title, `https://image.tmdb.org/t/p/w500${filmItem.poster_path}`,filmItem.overview, filmItem.id, filmItem.video);
+                                container.appendChild(createFilmCard(filmItem))
                             });
                             data = data.concat(json.results);
 
                         }).then(function () {
-                            console.log(data)
+                            // console.log(data)
 
                     })
 
@@ -411,6 +407,46 @@ function toggleColumn() {
 toggleButton.addEventListener("click", function () {
     toggleColumn();
 });
+
+
+/**
+ * Сортировка по заголовку
+ * @param type Если true сортируем по убыванию, если false по возрвстанию
+ */
+function sortData(type){
+    function sortByTitleUp(a,b) {
+        if (a.title > b.title) return 1;
+        if (a.title < b.title) return -1;
+    }
+
+    function sortByTitleLov(a,b) {
+        console.log(a,b);
+        if (a.title > b.title) return -1;
+        if (a.title < b.title) return 1;
+    }
+
+    if(type === true){
+        data.sort(sortByTitleUp);
+    } else if (type === false){
+        data.sort(sortByTitleLov);
+    }
+    console.log(data)
+}
+
+function sortItemOnList(type) {
+
+    container.innerHTML = "";
+
+    sortData(type);
+
+    data.forEach(function (filmItem) {
+        container.appendChild(createFilmCard(filmItem))
+    });
+
+}
+
+
+
 
 
 
