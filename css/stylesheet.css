@@ -281,5 +281,64 @@ td{
 }
 
 
+.videoPlayer{
+	display: inline-block;
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 100;
+}
+
+.videoCloseButton{
+	display: inline-block;
+	vertical-align: top;
+}
+
+.video-icon{
+	position: absolute;
+	top: 0;
+	right: 0;
+	height: 41px;
+}
+
+.flex-container.column {
+	display: flex;
+	align-items: stretch;
+	flex-direction: column;
+}
+
+.column > .film-card{
+	width: initial;
+}
+
+.column > .title{
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.column > .description{
+	display: inline-block;
+	width: 294px;
+	height: inherit;
+	vertical-align: middle;
+}
+
+.column > .film-card-button{
+	width: inherit;
+	position: absolute;
+	right: 0;
+	height: 100%;
+	top: 0;
+}
+
+.column > .poster{
+	display: none;
+}
+
+
+
+
+
 
 
