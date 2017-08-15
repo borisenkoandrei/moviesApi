@@ -103,10 +103,13 @@
 	box-sizing: border-box;
 }
 
+
+
 body{
 	margin:0;
-	height: 100vh;
+	/*height: 100vh;*/
 	position: relative;
+	background-color: #e0f2f1;
 }
 
 
@@ -116,6 +119,11 @@ body{
 	padding-top: 20px;
 	padding-bottom: 20px;
 	background-color: #009688;
+	/*position: fixed;*/
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 100;
 }
 
 form{
@@ -139,9 +147,10 @@ input{
 	border: 0;
 }
 .film-cards-container{
+	margin-top: 80px;
 	/*height: calc(100% - 130px);*/
 
-	background-color: #e0f2f1;
+	/*background-color: #e0f2f1;*/
 }
 
 .flex-container{
@@ -315,12 +324,19 @@ td{
 	flex-wrap: nowrap;
 	align-items: center;
 	justify-content: flex-start;
+	padding: 10px;
 }
 
 .column > .title{
 	display: inline-block;
 	vertical-align: middle;
 }
+
+.column > .video-icon{
+	position: static;
+	height: 30px;
+}
+
 
 .column > .description{
 	display: inline-block;
@@ -339,6 +355,29 @@ td{
 
 .column > .poster{
 	display: none;
+}
+
+.adult-icon{
+	height: 30px;
+}
+
+.flex-container .column > .hidden{
+	display: none;
+}
+.filter{
+	background-color: #009688;
+	border-top: 1px solid;
+	padding: 10px;
+}
+.filter-item{
+	display: inline-block;
+}
+
+.filter-lable{
+	display: inline-block;
+}
+.filter-button{
+	display: inline-block;
 }
 
 
