@@ -112,6 +112,10 @@ body{
 	background-color: #e0f2f1;
 }
 
+td{
+	word-break: break-all;
+}
+
 
 .search-bar{
 	width: 100%;

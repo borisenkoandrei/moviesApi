@@ -137,3 +137,31 @@ xhr.send(data3);
     <!--</span>-->
     <!--</div>-->
     <!--</div>-->
+
+
+
+
+    function viewVideo(src) {
+        let videoWrapper = document.createElement("div");
+        videoWrapper.classList.add("videoPlayer");
+
+        let frame = document.createElement("iframe");
+        frame.setAttribute("width","560");
+        frame.setAttribute("height","315");
+        frame.setAttribute("src",`https://www.youtube.com/embed/${src}`);
+        frame.setAttribute("frameborder","0");
+        frame.setAttribute("allowfullscreen",null);
+
+        let videoCloseButton = document.createElement("button");
+        videoCloseButton.classList.add("videoCloseButton");
+        videoCloseButton.innerHTML = "X";
+
+        videoWrapper.appendChild(frame);
+        videoWrapper.appendChild(videoCloseButton);
+
+        videoCloseButton.addEventListener("click", function (event) {
+            document.body.removeChild(videoWrapper);
+        });
+
+        document.body.appendChild(videoWrapper);
+    }
