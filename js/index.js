@@ -87,10 +87,9 @@ function createFilmCard(filmItem){
 
     let filmImage = document.createElement("img");
     filmImage.classList.add("poster");
-
-    if(filmItem.Poster === "N/A"){
+    if (filmItem.Poster === "N/A") {
         filmImage.src = "http://via.placeholder.com/300x300"
-    } else{
+    } else {
         filmImage.src = filmItem.Poster;
     }
     filmImage.alt = filmItem.Title;
@@ -241,7 +240,16 @@ function createTableRow(name, value) {
     td1.innerHTML = name;
 
     let td2 = document.createElement("td");
-    td2.innerHTML = value;
+
+    if (name ==="Website"){
+        let link = document.createElement("a");
+        link.innerHTML = value;
+        link.href = value;
+        link.setAttribute("target", "_blank");
+        td2.appendChild(link)
+    } else {
+        td2.innerHTML = value;
+    }
 
     tr.appendChild(td1);
     tr.appendChild(td2);
