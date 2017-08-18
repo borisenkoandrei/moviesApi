@@ -103,11 +103,13 @@
 	box-sizing: border-box;
 }
 
-
+html{
+	height: 100%;
+}
 
 body{
 	margin:0;
-	/*height: 100vh;*/
+	height: 100%;
 	position: relative;
 	background-color: #e0f2f1;
 }
@@ -117,12 +119,15 @@ td{
 }
 
 
+
+
 .search-bar{
 	width: 100%;
 	text-align: center;
 	padding-top: 20px;
 	padding-bottom: 20px;
 	background-color: #009688;
+	border-bottom: 1px solid;
 	/*position: fixed;*/
 	top: 0;
 	left: 0;
@@ -184,6 +189,12 @@ footer{
 
 .title{
 	padding: 5px;
+	display: inline-block;
+}
+.year{
+	display: inline-block;
+	padding: 5px;
+	float: right;
 }
 
 .poster{
@@ -370,8 +381,13 @@ td{
 }
 .filter{
 	background-color: #009688;
-	border-top: 1px solid;
 	padding: 10px;
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: -42px;
+	transition: 1s;
+	z-index: -10;
 }
 .filter-item{
 	display: inline-block;
@@ -383,6 +399,51 @@ td{
 .filter-button{
 	display: inline-block;
 }
+
+
+.enter-api-key{
+	display: inline-block;
+	border: 1px solid;
+	padding: 5px;
+	border-radius: 3px;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%,-50%);
+}
+.title-api-key{
+	text-align: center;
+	margin-bottom: 10px;
+}
+.form-api-key{
+	height: 43px;
+	font-size: 0;
+}
+.api-key-button{
+	border: 0;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.pg-img{
+	width: 200px;
+}
+
+
+.search-type{
+	height: 40px;
+	display: inline-block;
+	vertical-align: middle;
+	border: 0;
+	border-left: 1px solid rgb(229, 229, 227);
+}
+
+.ani{
+	top:80px;
+}
+
+
+
 
 
 

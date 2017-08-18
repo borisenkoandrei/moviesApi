@@ -1,10 +1,12 @@
 const container = document.querySelector(".flex-container");
+const filmCardContainer = document.querySelector(".film-cards-container");
 const searchBar = document.querySelector(".search-bar");
 const filtercontainer = document.querySelector(".filter");
+const filterblock = document.querySelector(".filter-block");
 const form = document.querySelector(".search-form");
 const input = document.querySelector("#search");
 const toggleButton = document.querySelector(".viewType");
-const ignoreProps = ["Poster", "Type","imdbRating", "imdbVotes", "imdbID", "Response"];
+const ignoreProps = ["Poster", "Type","imdbRating", "imdbVotes", "imdbID", "Response","Plot","Year"];
 
 let apikey = "";
 let data = [];
@@ -19,9 +21,7 @@ let data = [];
     if (localStorage.getItem("apiKey")){
         apikey = localStorage.getItem("apiKey");
     } else {
-        let api = prompt("Введите ключ API");
-        localStorage.setItem("apiKey", api);
-        apikey = api;
+        createApiWindow();
     }
 })();
 
@@ -43,6 +43,7 @@ function getFilmDetails(id, apiKey) {
         .then(function(response) {
             return response.json();
         }).then(function (data) {
+            console.log(data);
             createDetailsCard(data);
         }).catch(function (err) {
             console.log(err)
@@ -52,6 +53,7 @@ function getFilmDetails(id, apiKey) {
 function search(query, apiKey, page = 1) {
     container.classList.remove("column");
     container.innerHTML = "";
+    // data = [];
     fetch(`http://www.omdbapi.com/?s=${query}&type=movie&page=${page}&apikey=${apiKey}`)
         .then(function(response) {
             return response.json()
@@ -72,6 +74,12 @@ function search(query, apiKey, page = 1) {
                             });
                         })
                 }
+            } else {
+                json.Search.forEach(
+                    function (item) {
+                        container.appendChild(createFilmCard(item));
+                    }
+                )
             }
         })
 }
@@ -84,6 +92,11 @@ function createFilmCard(filmItem){
     let filmTitle = document.createElement("div");
     filmTitle.classList.add("title");
     filmTitle.innerHTML = filmItem.Title;
+
+    let filmYear = document.createElement("div");
+    filmYear.classList.add("year");
+    filmYear.innerHTML = filmItem.Year
+
 
     let filmImage = document.createElement("img");
     filmImage.classList.add("poster");
@@ -102,6 +115,7 @@ function createFilmCard(filmItem){
     filmButton.innerHTML = "Подробно";
 
     filmCard.appendChild(filmTitle);
+    filmCard.appendChild(filmYear);
     filmCard.appendChild(filmImage);
     filmCard.appendChild(filmButton);
 
@@ -234,6 +248,51 @@ function createDetailsCard(FilmDetails) {
 
 }
 
+function createApiWindow() {
+    let apiKeyWrapper = document.createElement("div");
+    apiKeyWrapper.classList.add("enter-api-key");
+    
+    let titleKeyWrapper = document.createElement("div");
+    titleKeyWrapper.classList.add("title-api-key");
+
+    let apiTitle = document.createElement("span");
+    apiTitle.classList.add("enter-api-title");
+    apiTitle.innerHTML = "Введите ключ api";
+    
+    titleKeyWrapper.appendChild(apiTitle);
+
+    let formApiKey = document.createElement("div");
+    formApiKey.classList.add("form-api-key");
+
+    let apiKeyInput = document.createElement("input");
+    apiKeyWrapper.setAttribute("type", "text");
+    apiKeyInput.classList.add("api-key-input");
+
+    let apiKeyButton = document.createElement("button");
+    apiKeyButton.classList.add("api-key-button");
+    apiKeyButton.innerHTML = "Сохранить";
+    
+    formApiKey.appendChild(apiKeyInput);
+    formApiKey.appendChild(apiKeyButton);
+    
+    apiKeyWrapper.appendChild(titleKeyWrapper);
+    apiKeyWrapper.appendChild(formApiKey);
+
+    filmCardContainer.appendChild(apiKeyWrapper);
+    
+    apiKeyButton.addEventListener("click", function () {
+        saveApiKey(apiKeyInput.value);
+        filmCardContainer.removeChild(apiKeyWrapper);
+    })
+    
+}
+
+function saveApiKey(key) {
+    localStorage.setItem("apiKey", key);
+    apikey = key;
+
+}
+
 function createTableRow(name, value) {
     let tr = document.createElement("tr");
     let td1 = document.createElement("td");
@@ -247,6 +306,14 @@ function createTableRow(name, value) {
         link.href = value;
         link.setAttribute("target", "_blank");
         td2.appendChild(link)
+    }else if (name ==="Rated"){
+        let img = document.createElement("img");
+        img.classList.add("pg-img");
+        img.src = `./img/PG/${value}.png`;
+        img.alt = value;
+        td2.appendChild(img);
+
+
     } else {
         td2.innerHTML = value;
     }
@@ -284,9 +351,7 @@ function toggleColumn() {
     });
 }
 
-toggleButton.addEventListener("click", function () {
-    toggleColumn();
-});
+
 
 
 /**
@@ -332,7 +397,7 @@ filtercontainer.addEventListener("click", function (e) {
     }
 
     let button = e.target;
-    console.log(button)
+    console.log(button);
     let item = button.dataset.type;
     let sortType = button.dataset.sotrtype;
 
@@ -359,6 +424,19 @@ document.addEventListener("click", function (event) {
         document.body.style.paddingRight = "0px";
     }
 });
+
+toggleButton.addEventListener("click", function () {
+    toggleColumn();
+});
+
+filterblock.addEventListener("click", function(){
+    animation()
+});
+
+function animation() {
+    filtercontainer.classList.toggle("ani");
+}
+
 
 
 

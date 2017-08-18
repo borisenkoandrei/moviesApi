@@ -10,18 +10,38 @@
     <div class="search-bar">
         <form class="search-form" action="">
             <input placeholder="Type movie" type="text" name="movie" id="search">
+            <select size="1"  name="searchType" class="search-type">
+                <option value="movie">movie</option>
+                <option value="series">series</option>
+            </select>
             <button class="search-button" type="submit" value="Submit">Поиск</button>
         </form>
         <button class="viewType">Изменить отображение</button>
         <button class="filter-block">Фильтр</button>
+        <button class="setings">Настройки</button>
     </div>
     <div class="filter">
         <div class="filter-item">
             <div class="filter-lable">Заголовок</div>
             <button class="filter-button" data-type="Title" data-sotrtype=true>фильтровать</button>
         </div>
+        <div class="filter-item">
+            <div class="filter-lable">Год</div>
+            <button class="filter-button" data-type="Year" data-sotrtype=true>фильтровать</button>
+        </div>
     </div>
+
     <div class="film-cards-container">
+        <!--<div class="enter-api-key">-->
+            <!--<div class="title-api-key">-->
+                <!--<span class="enter-api-title">Введите ключ api</span>-->
+            <!--</div>-->
+            <!--<div class="form-api-key">-->
+                <!--<input type="text" class="api-key-input">-->
+                <!--<button class="api-key-button">Сохранить</button>-->
+            <!--</div>-->
+
+        <!--</div>-->
         <div class="flex-container">
 
         </div>
@@ -34,7 +54,6 @@
 
 
 <script src="js/index.js"></script>
-    <script type="text/javascript" src="http://google.com/"></script>
 </body>
 </html>
 
