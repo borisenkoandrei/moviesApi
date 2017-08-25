@@ -1,0 +1,26 @@
+{
+  "name": "movieapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "eslint": "^4.5.0"
+  },
+  "devDependencies": {
+    "eslint-config-airbnb-base": "^11.3.2",
+    "eslint-plugin-import": "^2.7.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/borisenkoandrei/moviesApi.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/borisenkoandrei/moviesApi/issues"
+  },
+  "homepage": "https://github.com/borisenkoandrei/moviesApi#readme"
+}
