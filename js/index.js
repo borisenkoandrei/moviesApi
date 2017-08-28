@@ -3,6 +3,7 @@ const filmCardContainer = document.querySelector('.film-cards-container');
 const searchBar = document.querySelector('.search-bar');
 const filtercontainer = document.querySelector('.filter');
 const filterblock = document.querySelector('.filter-block');
+const setings = document.querySelector(".setings");
 const form = document.querySelector('.search-form');
 const input = document.querySelector('#search');
 const toggleButton = document.querySelector('.viewType');
@@ -372,6 +373,37 @@ function sortItemOnList(type, item) {
   });
 }
 
+function openSettings() {
+  let settings = document.createElement("div");
+  settings.innerHTML = `<div class="settings-container">
+    <input class="api-key-input" type="password" placeholder="API key">
+        <div class="radio-container">
+        <div class="radio">
+        <button class="list">List</button>
+        <button class="pages">Pages</button>
+        </div>
+        <input type="text" class="items-per-page">
+        <span class="ipp-text">Элементов на странице</span>
+    </div>
+    <div class="raiting-container">
+        <label class="r-lable"><input class="r-raiting" type="checkbox"> показывать рейтинг R</label>
+    </div>
+
+    <div class="button-wrapper">
+        <button class="log-off">Log out</button>
+    <div class="save-close">
+        <button class="save-settings">Save</button>
+        <button class="close-settings">Сlose</button>
+        </div>
+        </div>
+
+        </div>`
+    document.body.appendChild(settings);
+
+    let wrapper = document.querySelector(".wrapper");
+    wrapper.style.opacity = 0;
+}
+
 filtercontainer.addEventListener('click', (e) => {
   if (e.target === e.currentTarget) {
     return;
@@ -417,4 +449,9 @@ function animation() {
 filterblock.addEventListener('click', () => {
   animation();
 });
+
+setings.addEventListener("click", function () {
+    openSettings();
+
+})
 

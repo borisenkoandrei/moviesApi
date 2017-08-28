@@ -112,12 +112,19 @@ body{
 	height: 100%;
 	position: relative;
 	background-color: #e0f2f1;
+	z-index: -20;
+
 }
 
 td{
 	word-break: break-all;
 }
 
+.wrapper{
+	width: 100%;
+	height: 100%;
+	transition: opacity 2s;
+}
 
 
 
@@ -141,14 +148,14 @@ form{
 	font-size: 0;
 }
 
-input{
-	outline: none;
-	font-size: 20px;
-	vertical-align: middle;
-	height: 100%;
-	border:0;
-	padding: 10px;
-}
+/*input{*/
+	/*outline: none;*/
+	/*font-size: 20px;*/
+	/*vertical-align: middle;*/
+	/*height: 100%;*/
+	/*border:0;*/
+	/*padding: 10px;*/
+/*}*/
 
 .search-button{
 	height: 100%;
@@ -440,6 +447,89 @@ td{
 
 .ani{
 	top:80px;
+}
+
+/*settings*/
+
+.settings-container{
+	width: 500px;
+	height: 200px;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	padding: 20px;
+	border: 1px solid gray;
+	font-size: 0;
+	background-color: #0097a7;
+	z-index: 30;
+}
+
+.api-key-input {
+	width: 100%;
+	height: 30px;
+	margin-bottom: 20px;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.radio-container{
+	width: 100%;
+	margin-bottom: 20px;
+}
+
+.radio{
+	display: inline-block;
+	height: 30px;
+	margin-right: 20px;
+	border: 1px solid;
+}
+
+.list{
+	border: 0;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.pages{
+	border: 0;
+	height: 100%;
+	vertical-align: middle;
+}
+
+.items-per-page{
+	height: 30px;
+	width: 50px;
+	vertical-align: middle;
+	margin-right: 10px;
+}
+.ipp-text{
+	font-size: 16px;
+	vertical-align: middle;
+}
+
+.raiting-container{
+	margin-bottom: 20px;
+
+}
+
+.r-lable{
+	font-size: 16px;
+	vertical-align: middle;
+}
+
+.r-raiting{
+	vertical-align: middle;
+}
+
+.button-wrapper{
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+.save-settings{
+	margin-right: 10px;
 }
 
 
