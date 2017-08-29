@@ -3,12 +3,18 @@ const filmCardContainer = document.querySelector('.film-cards-container');
 const searchBar = document.querySelector('.search-bar');
 const filtercontainer = document.querySelector('.filter');
 const filterblock = document.querySelector('.filter-block');
-const setings = document.querySelector(".setings");
+const setings = document.querySelector('.setings');
 const form = document.querySelector('.search-form');
 const input = document.querySelector('#search');
 const toggleButton = document.querySelector('.viewType');
 const ignoreProps = ['Poster', 'Type', 'imdbRating', 'imdbVotes', 'imdbID', 'Response', 'Plot', 'Year'];
 
+const Settings = {
+  apikey: '',
+  raiting: '',
+  view: '',
+  elPerPages:""
+};
 let apikey = '';
 let data = [];
 
@@ -31,8 +37,8 @@ let data = [];
  * @param apiKey -
  */
 
-function getData(query, apiKey, page) {
-  return fetch(`http://www.omdbapi.com/?s=${query}&type=movie&page=${page}&apikey=${apiKey}`)
+function getData(query, apiKey, type, page) {
+  return fetch(`http://www.omdbapi.com/?s=${query}&type=${type}&page=${page}&apikey=${apiKey}`)
     .then(response => response.json());
 }
 
@@ -49,8 +55,12 @@ function getFilmDetails(id, apiKey) {
 function search(query, apiKey, page = 1) {
   container.classList.remove('column');
   container.innerHTML = '';
-  // data = [];
-  fetch(`http://www.omdbapi.com/?s=${query}&type=movie&page=${page}&apikey=${apiKey}`)
+
+  const type = document.querySelector(".search-type").value;
+  console.log(type);
+
+
+  fetch(`http://www.omdbapi.com/?s=${query}&type=${type}&page=${page}&apikey=${apiKey}`)
     .then(response => response.json())
     .then((json) => {
       data = data.concat(json.Search);
@@ -60,7 +70,7 @@ function search(query, apiKey, page = 1) {
 
       if (pages > 1) {
         for (let i = 2; i <= pages; i++) {
-          getData(query, apiKey, i)
+          getData(query, apiKey, type, i)
             .then((res) => {
               data = data.concat(res.Search);
               res.Search.forEach((filmItem) => {
@@ -374,34 +384,83 @@ function sortItemOnList(type, item) {
 }
 
 function openSettings() {
-  let settings = document.createElement("div");
-  settings.innerHTML = `<div class="settings-container">
-    <input class="api-key-input" type="password" placeholder="API key">
-        <div class="radio-container">
-        <div class="radio">
-        <button class="list">List</button>
-        <button class="pages">Pages</button>
-        </div>
-        <input type="text" class="items-per-page">
-        <span class="ipp-text">Элементов на странице</span>
-    </div>
-    <div class="raiting-container">
-        <label class="r-lable"><input class="r-raiting" type="checkbox"> показывать рейтинг R</label>
-    </div>
+  const settings = document.createElement('div');
+  settings.innerHTML = `
+      <div class="settings-container"><input class="api-key-input" type="password" placeholder="API key">
+          <div class="radio-container">
+              <div class="radio">
+                  <button class="list active-item" data-active="true" data-view="list">List</button>
+                  <button class="pages" data-active="false" data-view="page">Pages</button>
+              </div>
+              <input type="text" class="items-per-page" disabled="disabled"> <span class="ipp-text">Элементов на странице</span></div>
+          <div class="raiting-container"><label class="r-lable"><input class="r-raiting" type="checkbox"> показывать
+              рейтинг R</label></div>
+          <div class="button-wrapper">
+              <button class="log-off">Log out</button>
+              <div class="save-close">
+                  <button class="save-settings">Save</button>
+                  <button class="close-settings">Сlose</button>
+              </div>
+          </div>
+      </div>`;
+  document.body.appendChild(settings);
 
-    <div class="button-wrapper">
-        <button class="log-off">Log out</button>
-    <div class="save-close">
-        <button class="save-settings">Save</button>
-        <button class="close-settings">Сlose</button>
-        </div>
-        </div>
+  const wrapper = document.querySelector('.wrapper');
+  wrapper.style.opacity = 0;
 
-        </div>`
-    document.body.appendChild(settings);
+  const close = settings.querySelector('.close-settings');
+  const apiInput = settings.querySelector(".api-key-input");
+  const raiting = settings.querySelector('.r-raiting');
+  const radio = settings.querySelector(".radio");
+  const save = settings.querySelector(".save-settings");
+  const logOff = settings.querySelector(".log-off");
+  const itemsPerPage = document.querySelector('.items-per-page');
 
-    let wrapper = document.querySelector(".wrapper");
-    wrapper.style.opacity = 0;
+  close.addEventListener('click', () => {
+    wrapper.style.opacity = 1;
+    document.body.removeChild(settings);
+  });
+
+  radio.addEventListener('click', function (e) {
+    let child = radio.querySelectorAll("button");
+    child.forEach(function (i) {
+      i.classList.toggle("active-item");
+    })
+    if (radio.querySelector('.active-item').dataset.view === "page"){
+      itemsPerPage.removeAttribute('disabled');
+    } else {
+      itemsPerPage.setAttribute('disabled', 'disabled');
+      itemsPerPage.value = "";
+    }
+  });
+
+  itemsPerPage.addEventListener('keypress', function (e) {
+    if (!isNaN(e.key)){
+      return;
+    } else {
+      e.preventDefault();
+    }
+  });
+
+  save.addEventListener('click', function () {
+    Settings.apikey = apiInput.value;
+    Settings.raiting = raiting.checked;
+    Settings.view = radio.querySelector(".active-item").dataset.view;
+    if (Settings.view === "page"){
+      Settings.elPerPages =   +itemsPerPage.value || 10;
+    } else {
+      Settings.elPerPages = null;
+    };
+
+    console.log(Settings);
+  });
+
+  logOff.addEventListener('click', function () {
+    Settings.apikey = "";
+    apiInput.value = "";
+    console.log(Settings);
+  });
+
 }
 
 filtercontainer.addEventListener('click', (e) => {
@@ -424,8 +483,15 @@ filtercontainer.addEventListener('click', (e) => {
 });
 
 form.addEventListener('submit', (e) => {
-  e.preventDefault();
-  search(input.value, apikey);
+  const type =
+  console.log(input.value);
+  if (input.value === ""){
+    e.preventDefault();
+    return;
+  } else {
+    e.preventDefault();
+    search(input.value, apikey);
+  }
 });
 
 document.addEventListener('click', (event) => {
@@ -450,8 +516,7 @@ filterblock.addEventListener('click', () => {
   animation();
 });
 
-setings.addEventListener("click", function () {
-    openSettings();
-
-})
+setings.addEventListener('click', () => {
+  openSettings();
+});
 

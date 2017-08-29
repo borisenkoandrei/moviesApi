@@ -148,14 +148,14 @@ form{
 	font-size: 0;
 }
 
-/*input{*/
-	/*outline: none;*/
-	/*font-size: 20px;*/
-	/*vertical-align: middle;*/
-	/*height: 100%;*/
-	/*border:0;*/
-	/*padding: 10px;*/
-/*}*/
+#search{
+	outline: none;
+	font-size: 20px;
+	vertical-align: middle;
+	height: 100%;
+	border:0;
+	padding: 10px;
+}
 
 .search-button{
 	height: 100%;
@@ -483,6 +483,10 @@ td{
 	height: 30px;
 	margin-right: 20px;
 	border: 1px solid;
+}
+
+.radio > .active-item{
+	background: green;
 }
 
 .list{
