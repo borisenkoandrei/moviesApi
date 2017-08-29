@@ -9,13 +9,16 @@ const input = document.querySelector('#search');
 const toggleButton = document.querySelector('.viewType');
 const ignoreProps = ['Poster', 'Type', 'imdbRating', 'imdbVotes', 'imdbID', 'Response', 'Plot', 'Year'];
 
-const Settings = {
-  apikey: '',
-  raiting: '',
-  view: '',
-  elPerPages:""
+let appState = {
+    settings: {
+        apikey: '',
+        raiting: '',
+        view: '',
+        elPerPages:""
+    },
+    data: []
 };
-let apikey = '';
+
 let data = [];
 
 
@@ -24,12 +27,99 @@ let data = [];
  */
 
 (function getApiKey() {
-  if (localStorage.getItem('apiKey')) {
-    apikey = localStorage.getItem('apiKey');
+  if (localStorage.getItem('settings')) {
+      appState.settings = JSON.parse(localStorage.getItem('settings'));
   } else {
-    createApiWindow();
+      openSettings();
   }
 }());
+
+/**
+ * Создание и отрисовка окна с настройками
+ */
+
+function openSettings() {
+    const settings = document.createElement('div');
+    settings.innerHTML = `
+      <div class="settings-container"><input class="api-key-input" type="password" placeholder="API key">
+          <div class="radio-container">
+              <div class="radio">
+                  <button class="list active-item" data-active="true" data-view="list">List</button>
+                  <button class="pages" data-active="false" data-view="page">Pages</button>
+              </div>
+              <input type="text" class="items-per-page" disabled="disabled"> <span class="ipp-text">Элементов на странице</span></div>
+          <div class="raiting-container"><label class="r-lable"><input class="r-raiting" type="checkbox"> показывать
+              рейтинг R</label></div>
+          <div class="button-wrapper">
+              <button class="log-off">Log out</button>
+              <div class="save-close">
+                  <button class="save-settings">Save</button>
+                  <button class="close-settings">Сlose</button>
+              </div>
+          </div>
+      </div>`;
+    document.body.appendChild(settings);
+
+    const wrapper = document.querySelector('.wrapper');
+    wrapper.style.opacity = 0;
+
+    const close = settings.querySelector('.close-settings');
+    const apiInput = settings.querySelector(".api-key-input");
+    const raiting = settings.querySelector('.r-raiting');
+    const radio = settings.querySelector(".radio");
+    const save = settings.querySelector(".save-settings");
+    const logOff = settings.querySelector(".log-off");
+    const itemsPerPage = document.querySelector('.items-per-page');
+
+    close.addEventListener('click', () => {
+        wrapper.style.opacity = 1;
+        document.body.removeChild(settings);
+    });
+
+    radio.addEventListener('click', function (e) {
+        let child = radio.querySelectorAll("button");
+        child.forEach(function (i) {
+            i.classList.toggle("active-item");
+        })
+        if (radio.querySelector('.active-item').dataset.view === "page"){
+            itemsPerPage.removeAttribute('disabled');
+        } else {
+            itemsPerPage.setAttribute('disabled', 'disabled');
+            itemsPerPage.value = "";
+        }
+    });
+
+    itemsPerPage.addEventListener('keypress', function (e) {
+        if (!isNaN(e.key)){
+            return;
+        } else {
+            e.preventDefault();
+        }
+    });
+
+    save.addEventListener('click', function () {
+        appState.settings.apikey = apiInput.value;
+        appState.settings.raiting = raiting.checked;
+        appState.settings.view = radio.querySelector(".active-item").dataset.view;
+        if (appState.settings.view === "page"){
+            appState.settings.elPerPages =   +itemsPerPage.value || 10;
+        } else {
+            appState.settings.elPerPages = null;
+        };
+
+        localStorage.setItem('settings', JSON.stringify(appState.settings));
+
+        console.log(appState);
+    });
+
+    logOff.addEventListener('click', function () {
+        appState.settings.apikey = "";
+        localStorage.removeItem('apiKey');
+        apiInput.value = "";
+        console.log(Settings);
+    });
+
+}
 
 /**
  *
@@ -69,23 +159,101 @@ function search(query, apiKey, page = 1) {
       const pages = Math.ceil(totalResult / json.Search.length);
 
       if (pages > 1) {
-        for (let i = 2; i <= pages; i++) {
-          getData(query, apiKey, type, i)
-            .then((res) => {
-              data = data.concat(res.Search);
-              res.Search.forEach((filmItem) => {
-                container.appendChild(createFilmCard(filmItem));
-              });
-            });
-        }
+          if (appState.settings.view === 'list') {
+
+              for (let i = 2; i <= pages; i++) {
+                  getData(query, apiKey, type, i)
+                      .then((res) => {
+                          data = data.concat(res.Search);
+                          res.Search.forEach((filmItem) => {
+                              container.appendChild(createFilmCard(filmItem));
+                          });
+                      });
+              }
+
+          } else if (appState.settings.view === 'page') {
+              createPagesPicker(80);
+          }
       } else {
-        json.Search.forEach(
-          (item) => {
-            container.appendChild(createFilmCard(item));
-          },
-        );
+          json.Search.forEach(
+              (item) => {
+                  container.appendChild(createFilmCard(item));
+              },
+          );
       }
+
     });
+}
+
+function viewItemsOnList() {
+
+}
+
+function viewItemsOnPages(pages) {
+    getData(query, apiKey, type, i)
+        .then((res) => {
+            data = data.concat(res.Search);
+            res.Search.forEach((filmItem) => {
+                container.appendChild(createFilmCard(filmItem));
+            });
+        });
+}
+
+function createPagesPicker(pagesNumber) {
+    let ppWrapper = document.createElement('div');
+    ppWrapper.classList.add("pages-picker-wrapper");
+
+    let pagePicker = document.createElement('ul');
+    pagePicker.classList.add("pages-picker");
+
+    let pageIndex = document.createElement('li');
+    pageIndex.classList.add("page-index");
+
+    let prewPage = document.createElement('a');
+    prewPage.setAttribute('href', '#');
+    prewPage.classList.add('prew-page');
+    prewPage.innerHTML = '<<';
+
+    pageIndex.appendChild(prewPage);
+    pagePicker.appendChild(pageIndex);
+
+    for (let i = 1; i<=pagesNumber; i++){
+        let pageIndex = document.createElement('li');
+        pageIndex.classList.add("page-index")
+
+        let ageNumber = document.createElement('a');
+        ageNumber.setAttribute('href', '#');
+        ageNumber.classList.add('page-number');
+        ageNumber.innerHTML = i;
+
+        pageIndex.appendChild(ageNumber);
+        pagePicker.appendChild(pageIndex);
+
+    }
+
+    let pageIndex2 = document.createElement('li');
+    pageIndex2.classList.add("page-index");
+
+    let nextPage = document.createElement('a');
+    nextPage.setAttribute('href', '#');
+    nextPage.classList.add('next-page');
+    nextPage.innerHTML = '>>';
+
+    pageIndex2.appendChild(nextPage);
+    pagePicker.appendChild(pageIndex2);
+
+    ppWrapper.appendChild(pagePicker);
+    document.body.appendChild(ppWrapper);
+
+
+
+
+
+
+
+
+
+
 }
 
 function createFilmCard(filmItem) {
@@ -125,7 +293,7 @@ function createFilmCard(filmItem) {
 
   filmButton.addEventListener('click', (e) => {
     const id = e.currentTarget.closest('.film-card').dataset.id;
-    getFilmDetails(id, apikey);
+    getFilmDetails(id, appState.settings.apikey);
   });
 
   return filmCard;
@@ -247,49 +415,6 @@ function createDetailsCard(FilmDetails) {
   });
 }
 
-function saveApiKey(key) {
-  localStorage.setItem('apiKey', key);
-  apikey = key;
-}
-
-function createApiWindow() {
-  const apiKeyWrapper = document.createElement('div');
-  apiKeyWrapper.classList.add('enter-api-key');
-
-  const titleKeyWrapper = document.createElement('div');
-  titleKeyWrapper.classList.add('title-api-key');
-
-  const apiTitle = document.createElement('span');
-  apiTitle.classList.add('enter-api-title');
-  apiTitle.innerHTML = 'Введите ключ api';
-
-  titleKeyWrapper.appendChild(apiTitle);
-
-  const formApiKey = document.createElement('div');
-  formApiKey.classList.add('form-api-key');
-
-  const apiKeyInput = document.createElement('input');
-  apiKeyWrapper.setAttribute('type', 'text');
-  apiKeyInput.classList.add('api-key-input');
-
-  const apiKeyButton = document.createElement('button');
-  apiKeyButton.classList.add('api-key-button');
-  apiKeyButton.innerHTML = 'Сохранить';
-
-  formApiKey.appendChild(apiKeyInput);
-  formApiKey.appendChild(apiKeyButton);
-
-  apiKeyWrapper.appendChild(titleKeyWrapper);
-  apiKeyWrapper.appendChild(formApiKey);
-
-  filmCardContainer.appendChild(apiKeyWrapper);
-
-  apiKeyButton.addEventListener('click', () => {
-    saveApiKey(apiKeyInput.value);
-    filmCardContainer.removeChild(apiKeyWrapper);
-  });
-}
-
 function createTableRow(name, value) {
   const tr = document.createElement('tr');
   const td1 = document.createElement('td');
@@ -383,86 +508,6 @@ function sortItemOnList(type, item) {
   });
 }
 
-function openSettings() {
-  const settings = document.createElement('div');
-  settings.innerHTML = `
-      <div class="settings-container"><input class="api-key-input" type="password" placeholder="API key">
-          <div class="radio-container">
-              <div class="radio">
-                  <button class="list active-item" data-active="true" data-view="list">List</button>
-                  <button class="pages" data-active="false" data-view="page">Pages</button>
-              </div>
-              <input type="text" class="items-per-page" disabled="disabled"> <span class="ipp-text">Элементов на странице</span></div>
-          <div class="raiting-container"><label class="r-lable"><input class="r-raiting" type="checkbox"> показывать
-              рейтинг R</label></div>
-          <div class="button-wrapper">
-              <button class="log-off">Log out</button>
-              <div class="save-close">
-                  <button class="save-settings">Save</button>
-                  <button class="close-settings">Сlose</button>
-              </div>
-          </div>
-      </div>`;
-  document.body.appendChild(settings);
-
-  const wrapper = document.querySelector('.wrapper');
-  wrapper.style.opacity = 0;
-
-  const close = settings.querySelector('.close-settings');
-  const apiInput = settings.querySelector(".api-key-input");
-  const raiting = settings.querySelector('.r-raiting');
-  const radio = settings.querySelector(".radio");
-  const save = settings.querySelector(".save-settings");
-  const logOff = settings.querySelector(".log-off");
-  const itemsPerPage = document.querySelector('.items-per-page');
-
-  close.addEventListener('click', () => {
-    wrapper.style.opacity = 1;
-    document.body.removeChild(settings);
-  });
-
-  radio.addEventListener('click', function (e) {
-    let child = radio.querySelectorAll("button");
-    child.forEach(function (i) {
-      i.classList.toggle("active-item");
-    })
-    if (radio.querySelector('.active-item').dataset.view === "page"){
-      itemsPerPage.removeAttribute('disabled');
-    } else {
-      itemsPerPage.setAttribute('disabled', 'disabled');
-      itemsPerPage.value = "";
-    }
-  });
-
-  itemsPerPage.addEventListener('keypress', function (e) {
-    if (!isNaN(e.key)){
-      return;
-    } else {
-      e.preventDefault();
-    }
-  });
-
-  save.addEventListener('click', function () {
-    Settings.apikey = apiInput.value;
-    Settings.raiting = raiting.checked;
-    Settings.view = radio.querySelector(".active-item").dataset.view;
-    if (Settings.view === "page"){
-      Settings.elPerPages =   +itemsPerPage.value || 10;
-    } else {
-      Settings.elPerPages = null;
-    };
-
-    console.log(Settings);
-  });
-
-  logOff.addEventListener('click', function () {
-    Settings.apikey = "";
-    apiInput.value = "";
-    console.log(Settings);
-  });
-
-}
-
 filtercontainer.addEventListener('click', (e) => {
   if (e.target === e.currentTarget) {
     return;
@@ -483,14 +528,14 @@ filtercontainer.addEventListener('click', (e) => {
 });
 
 form.addEventListener('submit', (e) => {
-  const type =
+  // const type =
   console.log(input.value);
   if (input.value === ""){
     e.preventDefault();
     return;
   } else {
     e.preventDefault();
-    search(input.value, apikey);
+    search(input.value, appState.settings.apikey);
   }
 });
 

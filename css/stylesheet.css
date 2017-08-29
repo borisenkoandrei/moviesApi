@@ -536,6 +536,30 @@ td{
 	margin-right: 10px;
 }
 
+/*page picker*/
+
+.pages-picker-wrapper{
+	width: 100%;
+	text-align: center;
+}
+
+.pages-picker{
+	list-style: none;
+	display: inline-block;
+	padding: 0;
+	margin: 0 auto;
+}
+
+.prew-page, .page-number, .next-page{
+	text-decoration: none;
+}
+
+.page-index{
+
+	display: inline-block;
+}
+
+
 
 
 
