@@ -116,6 +116,9 @@ function openSettings() {
     }
 
     localStorage.setItem('settings', JSON.stringify(appState.settings));
+
+    wrapper.style.opacity = 1;
+    document.body.removeChild(settings);
   });
 
   logOff.addEventListener('click', () => {
@@ -132,11 +135,24 @@ function getData(page) {
 }
 
 function getFilmDetails(id) {
-  fetch(`http://www.omdbapi.com/?i=${id}&type=movie&apikey=${appState.settings.apikey}`)
+  fetch(`http://www.omdbapi.com/?i=${id}&apikey=${appState.settings.apikey}`)
     .then(response => response.json()).then((data) => {
       createDetailsCard(data);
     }).catch((err) => {
       console.log(err);
+    });
+}
+
+function checkRaiting(id) {//imdbID
+    return fetch(`http://www.omdbapi.com/?i=${id}&apikey=${appState.settings.apikey}`)
+        .then(response => response.json()).then((data) => {
+         if (appState.settings.raiting === true && data.Rated === "R"){
+           return true;
+         } else {
+           return false;
+         }
+    }).catch((err) => {
+        console.log(err);
     });
 }
 
@@ -160,12 +176,16 @@ function search(page = 1) {
               .then((res) => {
                 data = data.concat(res.Search);
                 res.Search.forEach((filmItem) => {
-                  container.appendChild(createFilmCard(filmItem));
+                  if (appState.settings.raiting === false){
+                      container.appendChild(createFilmCard(filmItem));
+                  } else {
+                    console.log("dsdsd")
+                  }
                 });
               });
           }
         } else if (appState.settings.view === 'page') {
-          getData(1)
+          getData(appState.pages.currentPage)
             .then((res) => {
               data = data.concat(res.Search);
               res.Search.forEach((filmItem) => {
@@ -183,14 +203,6 @@ function search(page = 1) {
         );
       }
     });
-}
-
-function viewItemsOnList() {
-
-}
-
-function viewItemsOnPages(pages) {
-
 }
 
 function createPagesPicker(pagesNumber) {
@@ -286,6 +298,8 @@ function createPagesPicker(pagesNumber) {
 }
 
 function createFilmCard(filmItem) {
+
+  console.log(filmItem)
   const filmCard = document.createElement('div');
   filmCard.dataset.id = filmItem.imdbID;
   filmCard.classList.add('film-card');
@@ -560,7 +574,7 @@ form.addEventListener('submit', (e) => {
   }
   e.preventDefault();
   appState.searchQuery.value = input.value;
-  appState.searchQuery.type = searchType;
+  appState.searchQuery.type = document.querySelector('.search-type').value;
   search();
 });
 
