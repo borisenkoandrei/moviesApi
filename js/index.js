@@ -8,15 +8,24 @@ const form = document.querySelector('.search-form');
 const input = document.querySelector('#search');
 const toggleButton = document.querySelector('.viewType');
 const ignoreProps = ['Poster', 'Type', 'imdbRating', 'imdbVotes', 'imdbID', 'Response', 'Plot', 'Year'];
+const searchType = document.querySelector('.search-type').value;
 
-let appState = {
-    settings: {
-        apikey: '',
-        raiting: '',
-        view: '',
-        elPerPages:""
-    },
-    data: []
+const appState = {
+  settings: {
+    apikey: '',
+    raiting: '',
+    view: '',
+    elPerPages: '',
+  },
+  searchQuery: {
+    value: '',
+    type: '',
+  },
+  pages: {
+    currentPage: '',
+    pages: '',
+  },
+
 };
 
 let data = [];
@@ -28,9 +37,9 @@ let data = [];
 
 (function getApiKey() {
   if (localStorage.getItem('settings')) {
-      appState.settings = JSON.parse(localStorage.getItem('settings'));
+    appState.settings = JSON.parse(localStorage.getItem('settings'));
   } else {
-      openSettings();
+    openSettings();
   }
 }());
 
@@ -39,8 +48,8 @@ let data = [];
  */
 
 function openSettings() {
-    const settings = document.createElement('div');
-    settings.innerHTML = `
+  const settings = document.createElement('div');
+  settings.innerHTML = `
       <div class="settings-container"><input class="api-key-input" type="password" placeholder="API key">
           <div class="radio-container">
               <div class="radio">
@@ -58,130 +67,121 @@ function openSettings() {
               </div>
           </div>
       </div>`;
-    document.body.appendChild(settings);
+  document.body.appendChild(settings);
 
-    const wrapper = document.querySelector('.wrapper');
-    wrapper.style.opacity = 0;
+  const wrapper = document.querySelector('.wrapper');
+  wrapper.style.opacity = 0;
 
-    const close = settings.querySelector('.close-settings');
-    const apiInput = settings.querySelector(".api-key-input");
-    const raiting = settings.querySelector('.r-raiting');
-    const radio = settings.querySelector(".radio");
-    const save = settings.querySelector(".save-settings");
-    const logOff = settings.querySelector(".log-off");
-    const itemsPerPage = document.querySelector('.items-per-page');
+  const close = settings.querySelector('.close-settings');
+  const apiInput = settings.querySelector('.api-key-input');
+  const raiting = settings.querySelector('.r-raiting');
+  const radio = settings.querySelector('.radio');
+  const save = settings.querySelector('.save-settings');
+  const logOff = settings.querySelector('.log-off');
+  const itemsPerPage = document.querySelector('.items-per-page');
 
-    close.addEventListener('click', () => {
-        wrapper.style.opacity = 1;
-        document.body.removeChild(settings);
+  close.addEventListener('click', () => {
+    wrapper.style.opacity = 1;
+    document.body.removeChild(settings);
+  });
+
+  radio.addEventListener('click', (e) => {
+    const child = radio.querySelectorAll('button');
+    child.forEach((i) => {
+      i.classList.toggle('active-item');
     });
+    if (radio.querySelector('.active-item').dataset.view === 'page') {
+      itemsPerPage.removeAttribute('disabled');
+    } else {
+      itemsPerPage.setAttribute('disabled', 'disabled');
+      itemsPerPage.value = '';
+    }
+  });
 
-    radio.addEventListener('click', function (e) {
-        let child = radio.querySelectorAll("button");
-        child.forEach(function (i) {
-            i.classList.toggle("active-item");
-        })
-        if (radio.querySelector('.active-item').dataset.view === "page"){
-            itemsPerPage.removeAttribute('disabled');
-        } else {
-            itemsPerPage.setAttribute('disabled', 'disabled');
-            itemsPerPage.value = "";
-        }
-    });
+  itemsPerPage.addEventListener('keypress', (e) => {
+    if (!isNaN(e.key)) {
+      return;
+    }
+    e.preventDefault();
+  });
 
-    itemsPerPage.addEventListener('keypress', function (e) {
-        if (!isNaN(e.key)){
-            return;
-        } else {
-            e.preventDefault();
-        }
-    });
+  save.addEventListener('click', () => {
+    appState.settings.apikey = apiInput.value || JSON.parse(localStorage.getItem('settings')).apikey;
+    appState.settings.raiting = raiting.checked;
+    appState.settings.view = radio.querySelector('.active-item').dataset.view;
+    if (appState.settings.view === 'page') {
+      appState.settings.elPerPages = +itemsPerPage.value || 10;
+    } else {
+      appState.settings.elPerPages = null;
+    }
 
-    save.addEventListener('click', function () {
-        appState.settings.apikey = apiInput.value;
-        appState.settings.raiting = raiting.checked;
-        appState.settings.view = radio.querySelector(".active-item").dataset.view;
-        if (appState.settings.view === "page"){
-            appState.settings.elPerPages =   +itemsPerPage.value || 10;
-        } else {
-            appState.settings.elPerPages = null;
-        };
+    localStorage.setItem('settings', JSON.stringify(appState.settings));
+  });
 
-        localStorage.setItem('settings', JSON.stringify(appState.settings));
-
-        console.log(appState);
-    });
-
-    logOff.addEventListener('click', function () {
-        appState.settings.apikey = "";
-        localStorage.removeItem('apiKey');
-        apiInput.value = "";
-        console.log(Settings);
-    });
-
+  logOff.addEventListener('click', () => {
+    appState.settings.apikey = '';
+    localStorage.removeItem('apiKey');
+    apiInput.value = '';
+  });
 }
 
-/**
- *
- * @param query - поисковой запрос
- * @param apiKey -
- */
 
-function getData(query, apiKey, type, page) {
-  return fetch(`http://www.omdbapi.com/?s=${query}&type=${type}&page=${page}&apikey=${apiKey}`)
+function getData(page) {
+  return fetch(`http://www.omdbapi.com/?s=${appState.searchQuery.value}&type=${appState.searchQuery.type}&page=${page}&apikey=${appState.settings.apikey}`)
     .then(response => response.json());
 }
 
-function getFilmDetails(id, apiKey) {
-  fetch(`http://www.omdbapi.com/?i=${id}&type=movie&apikey=${apiKey}`)
+function getFilmDetails(id) {
+  fetch(`http://www.omdbapi.com/?i=${id}&type=movie&apikey=${appState.settings.apikey}`)
     .then(response => response.json()).then((data) => {
-      console.log(data);
       createDetailsCard(data);
     }).catch((err) => {
       console.log(err);
     });
 }
 
-function search(query, apiKey, page = 1) {
+function search(page = 1) {
   container.classList.remove('column');
   container.innerHTML = '';
 
-  const type = document.querySelector(".search-type").value;
-  console.log(type);
-
-
-  fetch(`http://www.omdbapi.com/?s=${query}&type=${type}&page=${page}&apikey=${apiKey}`)
+  fetch(`http://www.omdbapi.com/?s=${appState.searchQuery.value}&type=${appState.searchQuery.type}&page=${page}&apikey=${appState.settings.apikey}`)
     .then(response => response.json())
     .then((json) => {
       data = data.concat(json.Search);
 
       const totalResult = json.totalResults;
-      const pages = Math.ceil(totalResult / json.Search.length);
+      appState.pages.pages = Math.ceil(totalResult / json.Search.length);
+      appState.pages.currentPage = 1;
 
-      if (pages > 1) {
-          if (appState.settings.view === 'list') {
-
-              for (let i = 2; i <= pages; i++) {
-                  getData(query, apiKey, type, i)
-                      .then((res) => {
-                          data = data.concat(res.Search);
-                          res.Search.forEach((filmItem) => {
-                              container.appendChild(createFilmCard(filmItem));
-                          });
-                      });
-              }
-
-          } else if (appState.settings.view === 'page') {
-              createPagesPicker(80);
+      if (appState.pages.pages > 1) {
+        if (appState.settings.view === 'list') {
+          for (let i = 2; i <= appState.pages.pages; i++) {
+            getData(i)
+              .then((res) => {
+                data = data.concat(res.Search);
+                res.Search.forEach((filmItem) => {
+                  container.appendChild(createFilmCard(filmItem));
+                });
+              });
           }
-      } else {
-          json.Search.forEach(
-              (item) => {
-                  container.appendChild(createFilmCard(item));
-              },
-          );
-      }
+        } else if (appState.settings.view === 'page') {
+          getData(1)
+            .then((res) => {
+              data = data.concat(res.Search);
+              res.Search.forEach((filmItem) => {
+                container.appendChild(createFilmCard(filmItem));
+              });
+            });
 
+          createPagesPicker(appState.pages.pages);
+        }
+      } else {
+        json.Search.forEach(
+          (item) => {
+            container.appendChild(createFilmCard(item));
+          },
+        );
+      }
     });
 }
 
@@ -190,70 +190,99 @@ function viewItemsOnList() {
 }
 
 function viewItemsOnPages(pages) {
-    getData(query, apiKey, type, i)
-        .then((res) => {
-            data = data.concat(res.Search);
-            res.Search.forEach((filmItem) => {
-                container.appendChild(createFilmCard(filmItem));
-            });
-        });
+
 }
 
 function createPagesPicker(pagesNumber) {
-    let ppWrapper = document.createElement('div');
-    ppWrapper.classList.add("pages-picker-wrapper");
+  if (document.querySelector('.pages-picker-wrapper')) {
+    document.body.removeChild(document.querySelector('.pages-picker-wrapper'));
+  }
+  const ppWrapper = document.createElement('div');
+  ppWrapper.classList.add('pages-picker-wrapper');
 
-    let pagePicker = document.createElement('ul');
-    pagePicker.classList.add("pages-picker");
+  const pagePicker = document.createElement('ul');
+  pagePicker.classList.add('pages-picker');
 
-    let pageIndex = document.createElement('li');
-    pageIndex.classList.add("page-index");
+  const pageIndex = document.createElement('li');
+  pageIndex.classList.add('page-index');
 
-    let prewPage = document.createElement('a');
-    prewPage.setAttribute('href', '#');
-    prewPage.classList.add('prew-page');
-    prewPage.innerHTML = '<<';
+  const prewPage = document.createElement('a');
+  prewPage.setAttribute('href', '#');
+  prewPage.classList.add('prew-page');
+  prewPage.innerHTML = '<<';
+  prewPage.dataset.type = 'prew';
 
-    pageIndex.appendChild(prewPage);
+  pageIndex.appendChild(prewPage);
+  pagePicker.appendChild(pageIndex);
+
+  for (let i = 1; i <= pagesNumber; i++) {
+    const pageIndex = document.createElement('li');
+    pageIndex.classList.add('page-index');
+
+    const ageNumber = document.createElement('a');
+    ageNumber.setAttribute('href', '#');
+    ageNumber.classList.add('page-number');
+    ageNumber.innerHTML = i;
+
+    pageIndex.appendChild(ageNumber);
     pagePicker.appendChild(pageIndex);
+  }
 
-    for (let i = 1; i<=pagesNumber; i++){
-        let pageIndex = document.createElement('li');
-        pageIndex.classList.add("page-index")
+  const pageIndex2 = document.createElement('li');
+  pageIndex2.classList.add('page-index');
 
-        let ageNumber = document.createElement('a');
-        ageNumber.setAttribute('href', '#');
-        ageNumber.classList.add('page-number');
-        ageNumber.innerHTML = i;
+  const nextPage = document.createElement('a');
+  nextPage.setAttribute('href', '#');
+  nextPage.classList.add('next-page');
+  nextPage.innerHTML = '>>';
+  nextPage.dataset.type = 'next';
 
-        pageIndex.appendChild(ageNumber);
-        pagePicker.appendChild(pageIndex);
+  pageIndex2.appendChild(nextPage);
+  pagePicker.appendChild(pageIndex2);
 
+  ppWrapper.appendChild(pagePicker);
+  document.body.appendChild(ppWrapper);
+
+  pagePicker.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (e.target.dataset.type === 'prew' && appState.pages.currentPage !== 1) {
+      container.innerHTML = '';
+      appState.pages.currentPage = +appState.pages.currentPage - 1;
+      getData(appState.pages.currentPage)
+        .then((res) => {
+          data = data.concat(res.Search);
+          res.Search.forEach((filmItem) => {
+            container.appendChild(createFilmCard(filmItem));
+          });
+        });
+    } else if (e.target.dataset.type === 'next' && appState.pages.currentPage !== appState.pages.pages) {
+      container.innerHTML = '';
+      appState.pages.currentPage = +appState.pages.currentPage + 1;
+      getData(appState.pages.currentPage)
+        .then((res) => {
+          data = data.concat(res.Search);
+          res.Search.forEach((filmItem) => {
+            container.appendChild(createFilmCard(filmItem));
+          });
+        });
+    } else if (e.target.dataset.type === 'prew' && appState.pages.currentPage === 1 || e.target.dataset.type === 'next' && appState.pages.currentPage === appState.pages.pages) {
+      e.preventDefault();
+    } else {
+      container.innerHTML = '';
+      console.log(appState.pages.currentPage)
+      console.log(e.target.dataset.type)
+      console.log(e.target.dataset.type !== "next")
+      appState.pages.currentPage = +e.target.innerHTML;
+      console.log(appState.pages.currentPage)
+      getData(e.target.innerHTML)
+        .then((res) => {
+          data = data.concat(res.Search);
+          res.Search.forEach((filmItem) => {
+            container.appendChild(createFilmCard(filmItem));
+          });
+        });
     }
-
-    let pageIndex2 = document.createElement('li');
-    pageIndex2.classList.add("page-index");
-
-    let nextPage = document.createElement('a');
-    nextPage.setAttribute('href', '#');
-    nextPage.classList.add('next-page');
-    nextPage.innerHTML = '>>';
-
-    pageIndex2.appendChild(nextPage);
-    pagePicker.appendChild(pageIndex2);
-
-    ppWrapper.appendChild(pagePicker);
-    document.body.appendChild(ppWrapper);
-
-
-
-
-
-
-
-
-
-
+  });
 }
 
 function createFilmCard(filmItem) {
@@ -293,7 +322,7 @@ function createFilmCard(filmItem) {
 
   filmButton.addEventListener('click', (e) => {
     const id = e.currentTarget.closest('.film-card').dataset.id;
-    getFilmDetails(id, appState.settings.apikey);
+    getFilmDetails(id);
   });
 
   return filmCard;
@@ -494,11 +523,9 @@ function sortData(type, item) {
   } else if (type === 'false') {
     data.sort(sortLov);
   }
-  console.log(data);
 }
 
 function sortItemOnList(type, item) {
-  console.log(typeof type);
   container.innerHTML = '';
 
   sortData(type, item);
@@ -514,7 +541,6 @@ filtercontainer.addEventListener('click', (e) => {
   }
 
   const button = e.target;
-  console.log(button);
   const item = button.dataset.type;
   const sortType = button.dataset.sotrtype;
 
@@ -528,20 +554,18 @@ filtercontainer.addEventListener('click', (e) => {
 });
 
 form.addEventListener('submit', (e) => {
-  // const type =
-  console.log(input.value);
-  if (input.value === ""){
+  if (input.value === '') {
     e.preventDefault();
     return;
-  } else {
-    e.preventDefault();
-    search(input.value, appState.settings.apikey);
   }
+  e.preventDefault();
+  appState.searchQuery.value = input.value;
+  appState.searchQuery.type = searchType;
+  search();
 });
 
 document.addEventListener('click', (event) => {
   const detailsCard = document.querySelector('.details-card');
-  // console.log(event.target.closest(".details-card"))
   if (detailsCard && !event.target.closest('.details-card')) {
     document.body.removeChild(detailsCard);
     document.body.style.overflow = 'visible';
