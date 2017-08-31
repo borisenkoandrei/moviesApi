@@ -28,6 +28,7 @@ const appState = {
 
 };
 
+
 let data = [];
 
 
@@ -43,9 +44,28 @@ let data = [];
   }
 }());
 
+console.log(appState.settings)
+
 /**
  * Создание и отрисовка окна с настройками
  */
+
+function viewSettingsParam() {
+  const apiInput = document.querySelector('.api-key-input');
+  const raiting = document.querySelector('.r-raiting');
+  const radio = document.querySelector('.radio');
+
+  const settings = appState.settings;
+
+  apiInput.value = settings.apikey;
+  raiting.checked = settings.raiting;
+  Array.from(radio.children, function (radioElem) {
+    if (radioElem.dataset.view === appState.settings.view && !radioElem.classList.contains('active-item')||
+      radioElem.dataset.view !== appState.settings.view && radioElem.classList.contains('active-item')){
+      radioElem.classList.toggle('active-item');
+    }
+  });
+}
 
 function openSettings() {
   const settings = document.createElement('div');
@@ -79,6 +99,10 @@ function openSettings() {
   const save = settings.querySelector('.save-settings');
   const logOff = settings.querySelector('.log-off');
   const itemsPerPage = document.querySelector('.items-per-page');
+
+  if(appState.settings){
+    viewSettingsParam();
+  }
 
   close.addEventListener('click', () => {
     wrapper.style.opacity = 1;
@@ -143,16 +167,16 @@ function getFilmDetails(id) {
     });
 }
 
-function checkRaiting(id) {//imdbID
-    return fetch(`http://www.omdbapi.com/?i=${id}&apikey=${appState.settings.apikey}`)
-        .then(response => response.json()).then((data) => {
-         if (appState.settings.raiting === true && data.Rated === "R"){
-           return true;
-         } else {
-           return false;
-         }
-    }).catch((err) => {
-        console.log(err);
+function checkRaiting(filmItem) { // imdbID
+  return fetch(`http://www.omdbapi.com/?i=${filmItem.imdbID}&apikey=${appState.settings.apikey}`)
+    .then(response => response.json())
+    .then((data) => {
+      if (data.Rated !== 'R') {
+        container.appendChild(createFilmCard(filmItem));
+      }
+    })
+    .catch((err) => {
+      console.log(err);
     });
 }
 
@@ -176,10 +200,10 @@ function search(page = 1) {
               .then((res) => {
                 data = data.concat(res.Search);
                 res.Search.forEach((filmItem) => {
-                  if (appState.settings.raiting === false){
-                      container.appendChild(createFilmCard(filmItem));
+                  if (appState.settings.raiting === true) {
+                    container.appendChild(createFilmCard(filmItem));
                   } else {
-                    console.log("dsdsd")
+                    checkRaiting(filmItem);
                   }
                 });
               });
@@ -281,11 +305,11 @@ function createPagesPicker(pagesNumber) {
       e.preventDefault();
     } else {
       container.innerHTML = '';
-      console.log(appState.pages.currentPage)
-      console.log(e.target.dataset.type)
-      console.log(e.target.dataset.type !== "next")
+      console.log(appState.pages.currentPage);
+      console.log(e.target.dataset.type);
+      console.log(e.target.dataset.type !== 'next');
       appState.pages.currentPage = +e.target.innerHTML;
-      console.log(appState.pages.currentPage)
+      console.log(appState.pages.currentPage);
       getData(e.target.innerHTML)
         .then((res) => {
           data = data.concat(res.Search);
@@ -298,8 +322,7 @@ function createPagesPicker(pagesNumber) {
 }
 
 function createFilmCard(filmItem) {
-
-  console.log(filmItem)
+  console.log(filmItem);
   const filmCard = document.createElement('div');
   filmCard.dataset.id = filmItem.imdbID;
   filmCard.classList.add('film-card');
