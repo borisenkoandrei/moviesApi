@@ -9,6 +9,8 @@ const input = document.querySelector('#search');
 const toggleButton = document.querySelector('.viewType');
 const ignoreProps = ['Poster', 'Type', 'imdbRating', 'imdbVotes', 'imdbID', 'Response', 'Plot', 'Year'];
 const searchType = document.querySelector('.search-type').value;
+const favoritContainer = document.querySelector('.favorit-container');
+const favoritList = document.querySelector('.fav-list');
 
 const appState = {
   settings: {
@@ -25,6 +27,7 @@ const appState = {
     currentPage: '',
     pages: '',
   },
+  fav: [],
 
 };
 
@@ -44,7 +47,7 @@ let data = [];
   }
 }());
 
-console.log(appState.settings)
+console.log(appState.settings);
 
 /**
  * Создание и отрисовка окна с настройками
@@ -59,9 +62,9 @@ function viewSettingsParam() {
 
   apiInput.value = settings.apikey;
   raiting.checked = settings.raiting;
-  Array.from(radio.children, function (radioElem) {
-    if (radioElem.dataset.view === appState.settings.view && !radioElem.classList.contains('active-item')||
-      radioElem.dataset.view !== appState.settings.view && radioElem.classList.contains('active-item')){
+  Array.from(radio.children, (radioElem) => {
+    if (radioElem.dataset.view === appState.settings.view && !radioElem.classList.contains('active-item') ||
+      radioElem.dataset.view !== appState.settings.view && radioElem.classList.contains('active-item')) {
       radioElem.classList.toggle('active-item');
     }
   });
@@ -100,7 +103,7 @@ function openSettings() {
   const logOff = settings.querySelector('.log-off');
   const itemsPerPage = document.querySelector('.items-per-page');
 
-  if(appState.settings){
+  if (appState.settings) {
     viewSettingsParam();
   }
 
@@ -626,3 +629,58 @@ setings.addEventListener('click', () => {
   openSettings();
 });
 
+function addFavoriteItem(favoriteArr) {
+  if (favoriteArr.length > 0) {
+    favoritList.innerHTML = "";
+    favoriteArr.forEach((favoriteItemData) => {
+      const favItem = document.createElement('li');
+      favItem.classList.add('fav-item');
+      favItem.dataset.id = favoriteItemData.id;
+
+      const favItemTextWrap = document.createElement('div');
+      favItemTextWrap.classList.add('fav-item_text-wrap');
+
+      const favItemTitle = document.createElement('div');
+      favItemTitle.classList.add('fav-item_title');
+      favItemTitle.innerHTML = favoriteItemData.title;
+
+      const favItemYear = document.createElement('div');
+      favItemYear.classList.add('fav-item_year');
+      favItemYear.innerHTML = favoriteItemData.year;
+
+      const favItemDelete = document.createElement('div');
+      favItemDelete.classList.add('fav-item_delete');
+      favItemDelete.innerHTML = 'Удалить';
+
+      favItemTextWrap.appendChild(favItemTitle);
+      favItemTextWrap.appendChild(favItemYear);
+
+      favItem.appendChild(favItemTextWrap);
+      favItem.appendChild(favItemDelete);
+
+      favItemDelete.addEventListener('click', function (e) {
+
+      });
+
+      favItem.addEventListener('click', function (e) {
+
+      });
+
+      favoritList.appendChild(favItem);
+    });
+  } else {
+    favoritList.innerHTML = 'Нет элементов';
+  }
+}
+
+favoritContainer.addEventListener('click', function (e) {
+  console.log(e.target)
+  if (e.target.closest(".favorit-container")){
+    e.target.classList.toggle('favorit-container-view');
+  }
+});
+
+function openFavoriteItem() {
+  fav
+
+}
