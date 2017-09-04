@@ -11,25 +11,39 @@ const ignoreProps = ['Poster', 'Type', 'imdbRating', 'imdbVotes', 'imdbID', 'Res
 const searchType = document.querySelector('.search-type').value;
 const favoritContainer = document.querySelector('.favorit-container');
 const favoritList = document.querySelector('.fav-list');
+const openbutton = document.querySelector('.open-button');
+
 
 const appState = {
   settings: {
-    apikey: '',
-    raiting: '',
-    view: '',
-    elPerPages: '',
   },
   searchQuery: {
-    value: '',
-    type: '',
   },
   pages: {
     currentPage: '',
     pages: '',
   },
-  fav: [],
+  fav: []
 
 };
+// const appState = {
+//   settings: {
+//     apikey: '',
+//     raiting: '',
+//     view: '',
+//     elPerPages: '',
+//   },
+//   searchQuery: {
+//     value: '',
+//     type: '',
+//   },
+//   pages: {
+//     currentPage: '',
+//     pages: '',
+//   },
+//   fav: []
+//
+// };
 
 
 let data = [];
@@ -39,7 +53,12 @@ let data = [];
  * Проверяем есть ли ключ API
  */
 
-(function getApiKey() {
+(function init() {
+  if (localStorage.getItem('favorite')){
+    console.log(JSON.parse(localStorage.getItem('favorite')))
+    appState.fav.push(JSON.parse(localStorage.getItem('favorite')));
+  }
+
   if (localStorage.getItem('settings')) {
     appState.settings = JSON.parse(localStorage.getItem('settings'));
   } else {
@@ -47,7 +66,6 @@ let data = [];
   }
 }());
 
-console.log(appState.settings);
 
 /**
  * Создание и отрисовка окна с настройками
@@ -103,7 +121,7 @@ function openSettings() {
   const logOff = settings.querySelector('.log-off');
   const itemsPerPage = document.querySelector('.items-per-page');
 
-  if (appState.settings) {
+  if (Object.keys(appState.settings).length > 0) {
     viewSettingsParam();
   }
 
@@ -355,10 +373,22 @@ function createFilmCard(filmItem) {
   filmButton.classList.add('film-card-button');
   filmButton.innerHTML = 'Подробно';
 
+  const addToFavorite = document.createElement('button');
+  addToFavorite.classList.add('filmCardAddToFavorite');
+  addToFavorite.innerHTML = '+';
+
+
   filmCard.appendChild(filmTitle);
   filmCard.appendChild(filmYear);
   filmCard.appendChild(filmImage);
   filmCard.appendChild(filmButton);
+  filmCard.appendChild(addToFavorite);
+
+  addToFavorite.addEventListener('click', function (e) {
+    let favoriteData = {id:filmItem.imdbID,year:filmItem.Year, title:filmItem.Title};
+    appState.fav.push(favoriteData);
+    console.log(appState.fav)
+  })
 
   filmButton.addEventListener('click', (e) => {
     const id = e.currentTarget.closest('.film-card').dataset.id;
@@ -629,58 +659,113 @@ setings.addEventListener('click', () => {
   openSettings();
 });
 
-function addFavoriteItem(favoriteArr) {
-  if (favoriteArr.length > 0) {
+// function addFavoriteItems(favoriteArr) {
+//   if (favoriteArr.length > 0) {
+//     favoritList.innerHTML = "";
+//     favoriteArr.forEach((favoriteItemData) => {
+//       const favItem = document.createElement('li');
+//       favItem.classList.add('fav-item');
+//       favItem.dataset.id = favoriteItemData.id;
+//
+//       const favItemTextWrap = document.createElement('div');
+//       favItemTextWrap.classList.add('fav-item_text-wrap');
+//
+//       const favItemTitle = document.createElement('div');
+//       favItemTitle.classList.add('fav-item_title');
+//       favItemTitle.innerHTML = favoriteItemData.title;
+//
+//       const favItemYear = document.createElement('div');
+//       favItemYear.classList.add('fav-item_year');
+//       favItemYear.innerHTML = favoriteItemData.year;
+//
+//       const favItemDelete = document.createElement('div');
+//       favItemDelete.classList.add('fav-item_delete');
+//       favItemDelete.innerHTML = 'Удалить';
+//
+//       favItemTextWrap.appendChild(favItemTitle);
+//       favItemTextWrap.appendChild(favItemYear);
+//
+//       favItem.appendChild(favItemTextWrap);
+//       favItem.appendChild(favItemDelete);
+//
+//       favItemDelete.addEventListener('click', function (e) {
+//
+//       });
+//
+//       favItem.addEventListener('click', function (e) {
+//
+//       });
+//
+//       favoritList.appendChild(favItem);
+//     });
+//   } else {
+//     favoritList.innerHTML = 'Нет элементов';
+//   }
+// }
+
+openbutton.addEventListener('click', (e) => {
+  if (e.target.closest('.favorit-container')) {
+    favoritContainer.classList.toggle('favorit-container-view');
     favoritList.innerHTML = "";
-    favoriteArr.forEach((favoriteItemData) => {
-      const favItem = document.createElement('li');
-      favItem.classList.add('fav-item');
-      favItem.dataset.id = favoriteItemData.id;
-
-      const favItemTextWrap = document.createElement('div');
-      favItemTextWrap.classList.add('fav-item_text-wrap');
-
-      const favItemTitle = document.createElement('div');
-      favItemTitle.classList.add('fav-item_title');
-      favItemTitle.innerHTML = favoriteItemData.title;
-
-      const favItemYear = document.createElement('div');
-      favItemYear.classList.add('fav-item_year');
-      favItemYear.innerHTML = favoriteItemData.year;
-
-      const favItemDelete = document.createElement('div');
-      favItemDelete.classList.add('fav-item_delete');
-      favItemDelete.innerHTML = 'Удалить';
-
-      favItemTextWrap.appendChild(favItemTitle);
-      favItemTextWrap.appendChild(favItemYear);
-
-      favItem.appendChild(favItemTextWrap);
-      favItem.appendChild(favItemDelete);
-
-      favItemDelete.addEventListener('click', function (e) {
-
-      });
-
-      favItem.addEventListener('click', function (e) {
-
-      });
-
-      favoritList.appendChild(favItem);
-    });
-  } else {
-    favoritList.innerHTML = 'Нет элементов';
-  }
-}
-
-favoritContainer.addEventListener('click', function (e) {
-  console.log(e.target)
-  if (e.target.closest(".favorit-container")){
-    e.target.classList.toggle('favorit-container-view');
+    addFavoriteItemsOnList();
   }
 });
 
-function openFavoriteItem() {
-  fav
+function createFavoritItem(favItemData) {
+  const favItem = document.createElement('li');
+  favItem.dataset.id = favItemData.id;
+  favItem.classList.add('fav-item');
 
+  const favItemTextWrap = document.createElement('div');
+  favItemTextWrap.classList.add('fav-item_text-wrap');
+
+  const favItemTitle = document.createElement('div');
+  favItemTitle.classList.add('fav-item_title');
+  favItemTitle.innerHTML = favItemData.title;
+
+  const favItemYear = document.createElement('div');
+  favItemYear.classList.add('fav-item_year');
+  favItemYear.innerHTML = favItemData.year;
+
+  const favItemDelete = document.createElement('button');
+  favItemDelete.classList.add('fav-item_delete');
+  favItemDelete.innerHTML = 'Удалить';
+
+  const favItemDetails = document.createElement('button');
+  favItemDetails.classList.add('fav-item_details');
+  favItemDetails.innerHTML = 'Подробно';
+
+
+  favItemTextWrap.appendChild(favItemTitle);
+  favItemTextWrap.appendChild(favItemYear);
+
+  favItem.appendChild(favItemTextWrap);
+  favItem.appendChild(favItemDelete);
+  favItem.appendChild(favItemDetails);
+
+  favItemDetails.addEventListener('click', () => {
+    getFilmDetails(favItemData.id);
+  });
+
+  favItemDelete.addEventListener('click', (e) => {
+    let id = e.target.closest(".fav-item").dataset.id;
+    favoritList.removeChild(favoritList.querySelector(`[data-id=${id}]`));
+    appState.fav.forEach((item, i) => {
+      if (item.id === favItemData.id) {
+        appState.fav.splice(i, 1);
+      }
+    });
+  });
+
+  return favItem;
 }
+
+function addFavoriteItemsOnList() {
+  appState.fav.forEach((item) => {
+    favoritList.appendChild(createFavoritItem(item));
+    localStorage.setItem('favorite', appState.fav);
+  });
+}
+
+
+

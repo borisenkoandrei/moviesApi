@@ -109,7 +109,7 @@ html{
 
 body{
 	margin:0;
-	height: 100%;
+	/*height: 100%;*/
 	position: relative;
 	background-color: #e0f2f1;
 	z-index: -20;
@@ -573,8 +573,7 @@ td{
 	transition: 1s;
 }
 
-.favorit-container:before{
-	content: "";
+.open-button{
 	position: absolute;
 	right: -15px;
 	top: 10px;
