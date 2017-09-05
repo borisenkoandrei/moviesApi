@@ -1,5 +1,4 @@
 const container = document.querySelector('.flex-container');
-const filmCardContainer = document.querySelector('.film-cards-container');
 const searchBar = document.querySelector('.search-bar');
 const filtercontainer = document.querySelector('.filter');
 const filterblock = document.querySelector('.filter-block');
@@ -8,7 +7,6 @@ const form = document.querySelector('.search-form');
 const input = document.querySelector('#search');
 const toggleButton = document.querySelector('.viewType');
 const ignoreProps = ['Poster', 'Type', 'imdbRating', 'imdbVotes', 'imdbID', 'Response', 'Plot', 'Year'];
-const searchType = document.querySelector('.search-type').value;
 const favoritContainer = document.querySelector('.favorit-container');
 const favoritList = document.querySelector('.fav-list');
 const openbutton = document.querySelector('.open-button');
@@ -23,8 +21,8 @@ const appState = {
     currentPage: '',
     pages: '',
   },
-  fav: []
-
+  fav: [],
+  favId: [],
 };
 // const appState = {
 //   settings: {
@@ -54,9 +52,14 @@ let data = [];
  */
 
 (function init() {
-  if (localStorage.getItem('favorite')){
-    console.log(JSON.parse(localStorage.getItem('favorite')))
-    appState.fav.push(JSON.parse(localStorage.getItem('favorite')));
+  if (localStorage.getItem('favorite')) {
+    const favList = JSON.parse(localStorage.getItem('favorite'));
+    appState.fav = favList;
+  }
+
+  if (localStorage.getItem('favID')) {
+    const favList = JSON.parse(localStorage.getItem('favID'));
+    appState.favId = favList;
   }
 
   if (localStorage.getItem('settings')) {
@@ -184,7 +187,7 @@ function getFilmDetails(id) {
     .then(response => response.json()).then((data) => {
       createDetailsCard(data);
     }).catch((err) => {
-      console.log(err);
+      alert(err);
     });
 }
 
@@ -197,7 +200,7 @@ function checkRaiting(filmItem) { // imdbID
       }
     })
     .catch((err) => {
-      console.log(err);
+      alert(err);
     });
 }
 
@@ -326,11 +329,7 @@ function createPagesPicker(pagesNumber) {
       e.preventDefault();
     } else {
       container.innerHTML = '';
-      console.log(appState.pages.currentPage);
-      console.log(e.target.dataset.type);
-      console.log(e.target.dataset.type !== 'next');
       appState.pages.currentPage = +e.target.innerHTML;
-      console.log(appState.pages.currentPage);
       getData(e.target.innerHTML)
         .then((res) => {
           data = data.concat(res.Search);
@@ -343,7 +342,6 @@ function createPagesPicker(pagesNumber) {
 }
 
 function createFilmCard(filmItem) {
-  console.log(filmItem);
   const filmCard = document.createElement('div');
   filmCard.dataset.id = filmItem.imdbID;
   filmCard.classList.add('film-card');
@@ -375,8 +373,13 @@ function createFilmCard(filmItem) {
 
   const addToFavorite = document.createElement('button');
   addToFavorite.classList.add('filmCardAddToFavorite');
-  addToFavorite.innerHTML = '+';
-
+  if (appState.favId.indexOf(filmItem.imdbID) > -1) {
+    addToFavorite.innerHTML = '-';
+    addToFavorite.dataset.action = 'delete';
+  } else {
+    addToFavorite.innerHTML = '+';
+    addToFavorite.dataset.action = 'add';
+  }
 
   filmCard.appendChild(filmTitle);
   filmCard.appendChild(filmYear);
@@ -384,11 +387,35 @@ function createFilmCard(filmItem) {
   filmCard.appendChild(filmButton);
   filmCard.appendChild(addToFavorite);
 
-  addToFavorite.addEventListener('click', function (e) {
-    let favoriteData = {id:filmItem.imdbID,year:filmItem.Year, title:filmItem.Title};
-    appState.fav.push(favoriteData);
-    console.log(appState.fav)
-  })
+  addToFavorite.addEventListener('click', (e) => {
+    const favoriteData = { id: filmItem.imdbID, year: filmItem.Year, title: filmItem.Title };
+    if (addToFavorite.dataset.action === 'add') {
+      appState.fav.push(favoriteData);
+      appState.favId.push(filmItem.imdbID);
+      localStorage.setItem('favorite', JSON.stringify(appState.fav));
+      localStorage.setItem('favID', JSON.stringify(appState.favId));
+      addToFavorite.dataset.action = 'delete';
+      addToFavorite.innerHTML = '-';
+      addFavoriteItemsOnList();
+    } else {
+      appState.fav.forEach((item, i) => {
+        if (item.id === filmItem.imdbID) {
+          appState.fav.splice(i, 1);
+          localStorage.setItem('favorite', JSON.stringify(appState.fav));
+          addFavoriteItemsOnList();
+        }
+      });
+      appState.favId.forEach((item, i) => {
+        if (item === filmItem.imdbID) {
+          appState.favId.splice(i, 1);
+          localStorage.setItem('favID', JSON.stringify(appState.favId));
+          addFavoriteItemsOnList();
+        }
+      });
+      addToFavorite.dataset.action = 'add';
+      addToFavorite.innerHTML = '+';
+    }
+  });
 
   filmButton.addEventListener('click', (e) => {
     const id = e.currentTarget.closest('.film-card').dataset.id;
@@ -397,15 +424,19 @@ function createFilmCard(filmItem) {
 
   return filmCard;
 }
-
+/**
+ *
+ * @param FilmDetails
+ * @param {{imdbID}} FilmDetails
+ * @param {{Title}} FilmDetails
+ * @param {{Poster}} FilmDetails
+ * @param {{Plot}} FilmDetails
+ *
+ */
 function createDetailsCard(FilmDetails) {
   const detailsCard = document.createElement('div');
   detailsCard.dataset.id = FilmDetails.imdbID;
   detailsCard.classList.add('details-card');
-  /**
-     * TOP BLOCK
-     * @type {Element}
-     */
 
   const topBlock = document.createElement('div');
   topBlock.classList.add('top-block');
@@ -420,11 +451,6 @@ function createDetailsCard(FilmDetails) {
 
   topBlock.appendChild(detailsCardTitle);
   topBlock.appendChild(closeButton);
-
-  /**
-     * Description Container
-     * @type {Element}
-     */
 
   const descriptionContainer = document.createElement('div');
   descriptionContainer.classList.add('description-container');
@@ -441,22 +467,7 @@ function createDetailsCard(FilmDetails) {
     posterPic.src = FilmDetails.Poster;
   }
 
-  const video = document.createElement('button');
-  video.classList.add('video');
-  video.innerHTML = 'YouTube';
-  video.dataset.src = FilmDetails.video;
-
-  video.addEventListener('click', (e) => {
-    const id = e.target.closest('.details-card').dataset.id;
-    getVideoSrc(id);
-  });
-
   posterWrap.appendChild(posterPic);
-
-  if (FilmDetails.video) {
-    posterWrap.appendChild(video);
-  }
-
 
   const tableWrap = document.createElement('div');
   tableWrap.classList.add('table-wrap');
@@ -482,12 +493,6 @@ function createDetailsCard(FilmDetails) {
 
   descriptionContainer.appendChild(posterWrap);
   descriptionContainer.appendChild(tableWrap);
-
-
-  /**
-     * Ovwevew
-     * @type {Element}
-     */
 
   const overview = document.createElement('div');
   overview.classList.add('overview');
@@ -659,54 +664,11 @@ setings.addEventListener('click', () => {
   openSettings();
 });
 
-// function addFavoriteItems(favoriteArr) {
-//   if (favoriteArr.length > 0) {
-//     favoritList.innerHTML = "";
-//     favoriteArr.forEach((favoriteItemData) => {
-//       const favItem = document.createElement('li');
-//       favItem.classList.add('fav-item');
-//       favItem.dataset.id = favoriteItemData.id;
-//
-//       const favItemTextWrap = document.createElement('div');
-//       favItemTextWrap.classList.add('fav-item_text-wrap');
-//
-//       const favItemTitle = document.createElement('div');
-//       favItemTitle.classList.add('fav-item_title');
-//       favItemTitle.innerHTML = favoriteItemData.title;
-//
-//       const favItemYear = document.createElement('div');
-//       favItemYear.classList.add('fav-item_year');
-//       favItemYear.innerHTML = favoriteItemData.year;
-//
-//       const favItemDelete = document.createElement('div');
-//       favItemDelete.classList.add('fav-item_delete');
-//       favItemDelete.innerHTML = 'Удалить';
-//
-//       favItemTextWrap.appendChild(favItemTitle);
-//       favItemTextWrap.appendChild(favItemYear);
-//
-//       favItem.appendChild(favItemTextWrap);
-//       favItem.appendChild(favItemDelete);
-//
-//       favItemDelete.addEventListener('click', function (e) {
-//
-//       });
-//
-//       favItem.addEventListener('click', function (e) {
-//
-//       });
-//
-//       favoritList.appendChild(favItem);
-//     });
-//   } else {
-//     favoritList.innerHTML = 'Нет элементов';
-//   }
-// }
-
 openbutton.addEventListener('click', (e) => {
   if (e.target.closest('.favorit-container')) {
     favoritContainer.classList.toggle('favorit-container-view');
-    favoritList.innerHTML = "";
+    openbutton.classList.toggle('open-button-view');
+    favoritList.innerHTML = '';
     addFavoriteItemsOnList();
   }
 });
@@ -748,11 +710,18 @@ function createFavoritItem(favItemData) {
   });
 
   favItemDelete.addEventListener('click', (e) => {
-    let id = e.target.closest(".fav-item").dataset.id;
+    const id = e.target.closest('.fav-item').dataset.id;
     favoritList.removeChild(favoritList.querySelector(`[data-id=${id}]`));
     appState.fav.forEach((item, i) => {
       if (item.id === favItemData.id) {
         appState.fav.splice(i, 1);
+        localStorage.setItem('favorite', JSON.stringify(appState.fav));
+      }
+    });
+    appState.favId.forEach((item, i) => {
+      if (item === favItemData.id) {
+        appState.favId.splice(i, 1);
+        localStorage.setItem('favID', JSON.stringify(appState.favId));
       }
     });
   });
@@ -761,11 +730,20 @@ function createFavoritItem(favItemData) {
 }
 
 function addFavoriteItemsOnList() {
+  favoritList.innerHTML = '';
   appState.fav.forEach((item) => {
     favoritList.appendChild(createFavoritItem(item));
-    localStorage.setItem('favorite', appState.fav);
+    localStorage.setItem('favorite', JSON.stringify(appState.fav));
   });
 }
 
-
+window.addEventListener('scroll', (e) => {
+  const scrolled = window.pageYOffset;
+  const delta = 80 - scrolled;
+  if (delta >= 0) {
+    favoritContainer.style.marginTop = `${delta} + px`;
+  } else {
+    e.preventDefault();
+  }
+});
 

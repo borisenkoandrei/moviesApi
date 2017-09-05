@@ -563,25 +563,30 @@ td{
 /*favorit*/
 
 .favorit-container{
-	position: absolute;
+	position: fixed;
 	top: 0;
 	left: -300px;
 	bottom: 0;
 	width: 300px;
 	margin-top: 80px;
 	border-right: 1px solid black;
-	transition: 1s;
+	transition: left 1s;
 }
 
 .open-button{
-	position: absolute;
-	right: -15px;
-	top: 10px;
+	position: fixed;
+	top: 130px;
+	left:0;
 	display: inline-block;
 	width: 15px;
 	height: 30px;
 	background-color: #00acc1;
 	border-radius: 0 100% 100% 0/0 50% 50% 0;
+	transition: 1s;
+}
+
+.open-button-view{
+	left: 300px;
 }
 
 .favorit-container-view{
